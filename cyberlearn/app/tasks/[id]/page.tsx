@@ -46,7 +46,11 @@ export default async function TaskDetailPage({
 
       <HintBox hint1={task.hint1} hint2={task.hint2} hint3={task.hint3} />
 
-      <TaskAttemptForm taskId={params.id} objective={task.objective} rubric={task.rubric} />
+      <TaskAttemptForm
+        taskId={params.id}
+        objective={task.objective}
+        rubric={task.rubric}
+      />
     </div>
   );
 }

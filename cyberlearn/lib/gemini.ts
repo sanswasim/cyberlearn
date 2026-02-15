@@ -1,13 +1,6 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import type { GeminiGradeResult } from "./types";
 
 const MODEL = "gemini-1.5-flash";
-
-function extractJSON(text: string): { score?: number; feedback?: string } {
-  const match = text.match(/\{[\s\S]*\}/);
-  if (!match) throw new Error("No JSON object found in Gemini output");
-  return JSON.parse(match[0]) as { score?: number; feedback?: string };
-}
 
 function getClient(): GoogleGenerativeAI {
   const key = process.env.GEMINI_API_KEY;
@@ -15,15 +8,22 @@ function getClient(): GoogleGenerativeAI {
   return new GoogleGenerativeAI(key);
 }
 
+function extractJSON(text: string) {
+  const match = text.match(/\{[\s\S]*\}/);
+  if (!match) throw new Error("No JSON object found in Gemini output");
+  return JSON.parse(match[0]);
+}
+
 export async function gradeTask(params: {
   objective: string;
   rubric: string;
   studentAnswer: string;
-}): Promise<GeminiGradeResult> {
+}): Promise<{ score: number; feedback: string }> {
   const gen = getClient();
   const model = gen.getGenerativeModel({ model: MODEL });
 
-  const prompt = `You are a coach grading an administrator's task submission. Do NOT reveal the full correct answer or solution. Provide guidance only.
+  const prompt = `You are a coach grading an administrator's task submission.
+Do NOT reveal the full correct answer or solution. Provide guidance only.
 
 TASK OBJECTIVE:
 ${params.objective}
@@ -36,27 +36,27 @@ ${params.studentAnswer}
 
 Respond with ONLY a valid JSON object (no markdown, no code block), with exactly two keys:
 - "score": number from 0 to 10 (integer)
-- "feedback": string with coaching feedback. Mention what is missing or could be improved (e.g. verification steps, rollback plan, least privilege). Do not give away the exact solution.`;
+- "feedback": string with coaching feedback. Mention what is missing or could be improved (e.g. verification steps, rollback plan, least privilege).
 
-  const result = await model.generateContent(prompt);
-  const text = result.response.text();
-  if (!text) throw new Error("Empty Gemini response");
+Do not give away the exact solution.`;
 
-  const cleaned = text.replace(/```json?\s*/g, "").replace(/```\s*/g, "").trim();
+  const runOnce = async () => {
+    const result = await model.generateContent(prompt);
+    const text = result.response.text();
+    if (!text) throw new Error("Empty Gemini response");
+    const cleaned = text.replace(/```json?\s*/g, "").replace(/```\s*/g, "").trim();
+    const parsed = extractJSON(cleaned) as { score?: number; feedback?: string };
+    const score = Math.min(10, Math.max(0, Math.round(Number(parsed.score) ?? 0)));
+    const feedback = typeof parsed.feedback === "string" ? parsed.feedback : "No feedback provided.";
+    return { score, feedback };
+  };
 
-  let parsed: { score?: number; feedback?: string };
   try {
-    parsed = extractJSON(cleaned);
+    return await runOnce();
   } catch {
-    const retry = await model.generateContent(prompt);
-    const retryText = retry.response.text();
-    if (!retryText) throw new Error("Empty Gemini retry response");
-    parsed = extractJSON(retryText);
+    // retry once
+    return await runOnce();
   }
-
-  const score = Math.min(10, Math.max(0, Math.round(Number(parsed.score) ?? 0)));
-  const feedback = typeof parsed.feedback === "string" ? parsed.feedback : "No feedback provided.";
-  return { score, feedback };
 }
 
 export function getHint(params: {

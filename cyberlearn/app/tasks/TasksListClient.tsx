@@ -8,11 +8,11 @@ import { Button } from "@/components/ui/button";
 type PlatformFilter = "all" | "GoogleWorkspace" | "Okta";
 type TierFilter = "all" | 1 | 2 | 3 | 4 | 5;
 
-interface TasksListClientProps {
+export function TasksListClient({
+  initialTasks,
+}: {
   initialTasks: (TaskRecord & { id: string })[];
-}
-
-export function TasksListClient({ initialTasks }: TasksListClientProps) {
+}) {
   const [platform, setPlatform] = useState<PlatformFilter>("all");
   const [tier, setTier] = useState<TierFilter>("all");
 
