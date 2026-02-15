@@ -34,28 +34,29 @@ ${params.rubric}
 STUDENT SUBMISSION:
 ${params.studentAnswer}
 
-Respond with ONLY a valid JSON object (no markdown, no code block), with exactly two keys:
-- "score": number from 0 to 10 (integer)
-- "feedback": string with coaching feedback. Mention what is missing or could be improved (e.g. verification steps, rollback plan, least privilege).
-
+Respond with ONLY a valid JSON object (no markdown, no code block), with exactly:
+{"score": <0-10 integer>, "feedback": "<string>"}.
 Do not give away the exact solution.`;
 
   const runOnce = async () => {
     const result = await model.generateContent(prompt);
     const text = result.response.text();
-    if (!text) throw new Error("Empty Gemini response");
-    const cleaned = text.replace(/```json?\s*/g, "").replace(/```\s*/g, "").trim();
+    const cleaned = (text || "")
+      .replace(/```json?\s*/g, "")
+      .replace(/```\s*/g, "")
+      .trim();
+
     const parsed = extractJSON(cleaned) as { score?: number; feedback?: string };
     const score = Math.min(10, Math.max(0, Math.round(Number(parsed.score) ?? 0)));
-    const feedback = typeof parsed.feedback === "string" ? parsed.feedback : "No feedback provided.";
+    const feedback =
+      typeof parsed.feedback === "string" ? parsed.feedback : "No feedback provided.";
     return { score, feedback };
   };
 
   try {
     return await runOnce();
   } catch {
-    // retry once
-    return await runOnce();
+    return await runOnce(); // retry once
   }
 }
 
