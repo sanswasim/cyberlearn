@@ -12,7 +12,7 @@ const nav = [
   { href: "/progress", label: "Progress" },
 ];
 
-export function Sidebar({ userEmail }: { userEmail?: string | null }) {
+function Sidebar(_props?: { userEmail?: string | null }) {
   const pathname = usePathname();
   return (
     <aside className="flex w-56 flex-col border-r border-[#1E2A44] bg-[#121A2B]">
@@ -38,9 +38,9 @@ export function Sidebar({ userEmail }: { userEmail?: string | null }) {
         ))}
       </nav>
       <div className="border-t border-[#1E2A44] p-3">
-        {userEmail && (
-          <p className="truncate px-2 text-xs text-muted-foreground" title={userEmail}>
-            {userEmail}
+        {_props?.userEmail && (
+          <p className="truncate px-2 text-xs text-muted-foreground" title={_props.userEmail}>
+            {_props.userEmail}
           </p>
         )}
         <Button
@@ -55,3 +55,5 @@ export function Sidebar({ userEmail }: { userEmail?: string | null }) {
     </aside>
   );
 }
+
+export default Sidebar;

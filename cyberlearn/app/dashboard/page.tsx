@@ -52,7 +52,9 @@ export default async function DashboardPage() {
           {recommended.length === 0 ? (
             <p className="text-muted-foreground col-span-full">No recommended tasks. Try increasing your tier or check back later.</p>
           ) : (
-            recommended.map((task) => <TaskCard key={task.id} task={task} />)
+            recommended.map((task) => (
+              <TaskCard key={task.id} task={task} />
+            ))
           )}
         </div>
       </section>

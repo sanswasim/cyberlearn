@@ -8,6 +8,8 @@ import { FeedbackCard } from "./FeedbackCard";
 
 interface TaskAttemptFormProps {
   taskId: string;
+  objective?: string;
+  rubric?: string;
   onSubmitted?: () => void;
 }
 

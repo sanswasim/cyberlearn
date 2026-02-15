@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useMemo } from "react";
-import { TaskCard } from "@/components/TaskCard";
+import { useMemo, useState } from "react";
 import type { TaskRecord } from "@/lib/types";
+import { TaskCard } from "@/components/TaskCard";
 import { Button } from "@/components/ui/button";
 
 type PlatformFilter = "all" | "GoogleWorkspace" | "Okta";
+type TierFilter = "all" | 1 | 2 | 3 | 4 | 5;
 
 interface TasksListClientProps {
   initialTasks: (TaskRecord & { id: string })[];
@@ -13,7 +14,7 @@ interface TasksListClientProps {
 
 export function TasksListClient({ initialTasks }: TasksListClientProps) {
   const [platform, setPlatform] = useState<PlatformFilter>("all");
-  const [tier, setTier] = useState<number | "all">("all");
+  const [tier, setTier] = useState<TierFilter>("all");
 
   const filtered = useMemo(() => {
     let list = initialTasks;
@@ -23,40 +24,41 @@ export function TasksListClient({ initialTasks }: TasksListClientProps) {
   }, [initialTasks, platform, tier]);
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-wrap items-center gap-2">
-        <span className="text-sm text-muted-foreground">Platform:</span>
+    <div className="space-y-6">
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="text-sm opacity-70">Platform:</div>
         {(["all", "GoogleWorkspace", "Okta"] as const).map((p) => (
           <Button
             key={p}
             variant={platform === p ? "default" : "outline"}
-            size="sm"
-            className={platform === p ? "bg-[#0FFFC1] text-[#0A0F1C]" : "border-[#1E2A44]"}
             onClick={() => setPlatform(p)}
           >
             {p === "all" ? "All" : p}
           </Button>
         ))}
-        <span className="text-sm text-muted-foreground ml-4">Tier:</span>
-        {(["all", 1, 2, 3] as const).map((t) => (
+
+        <div className="ml-4 text-sm opacity-70">Tier:</div>
+        {(["all", 1, 2, 3, 4, 5] as const).map((t) => (
           <Button
             key={String(t)}
             variant={tier === t ? "default" : "outline"}
-            size="sm"
-            className={tier === t ? "bg-[#0FFFC1] text-[#0A0F1C]" : "border-[#1E2A44]"}
-            onClick={() => setTier(t)}
+            onClick={() => setTier(t as TierFilter)}
           >
-            {t === "all" ? "All" : t}
+            {t === "all" ? "All" : `Tier ${t}`}
           </Button>
         ))}
       </div>
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+
+      <div className="grid gap-4 md:grid-cols-2">
         {filtered.map((task) => (
           <TaskCard key={task.id} task={task} />
         ))}
       </div>
+
       {filtered.length === 0 && (
-        <p className="text-muted-foreground">No tasks match the filters.</p>
+        <div className="rounded-lg border border-[#1E2A44] bg-[#121A2B] p-4 opacity-80">
+          No tasks match the filters.
+        </div>
       )}
     </div>
   );

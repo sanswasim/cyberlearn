@@ -11,38 +11,42 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 export default async function TaskDetailPage({
   params,
 }: {
-  params: Promise<{ id: string }>;
+  params: { id: string };
 }) {
   await requireAuth();
-  const { id } = await params;
-  const task = await getTaskById(id);
+  const task = await getTaskById(params.id);
   if (!task) notFound();
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-2">
-        <Button asChild variant="ghost" size="sm" className="text-muted-foreground">
+      <div className="flex items-center gap-3">
+        <Button asChild variant="outline">
           <Link href="/tasks">← Tasks</Link>
         </Button>
-      </div>
-      <div className="flex flex-wrap items-center gap-2">
-        <Badge>{task.platform}</Badge>
+        <Badge variant="secondary">{task.platform}</Badge>
         <Badge variant="outline">Tier {task.tier}</Badge>
-        <Badge variant="secondary">{task.difficulty}</Badge>
+        <Badge variant="outline">{task.difficulty}</Badge>
       </div>
-      <h1 className="text-2xl font-bold text-[#E6EDF3]">{task.title}</h1>
-      <Card className="bg-[#121A2B] border-[#1E2A44]">
+
+      <Card className="border-[#1E2A44] bg-[#121A2B]">
         <CardHeader>
-          <h3 className="text-sm font-medium text-muted-foreground">Objective</h3>
-          <p className="text-[#E6EDF3]">{task.objective}</p>
+          <h1 className="text-2xl font-semibold">{task.title}</h1>
         </CardHeader>
-        <CardContent className="pt-0">
-          <h3 className="text-sm font-medium text-muted-foreground mb-2">Description</h3>
-          <p className="text-[#E6EDF3] whitespace-pre-wrap">{task.description}</p>
+        <CardContent className="space-y-4">
+          <div>
+            <h3 className="font-semibold">Objective</h3>
+            <p className="opacity-90">{task.objective}</p>
+          </div>
+          <div>
+            <h3 className="font-semibold">Description</h3>
+            <p className="opacity-90">{task.description}</p>
+          </div>
         </CardContent>
       </Card>
+
       <HintBox hint1={task.hint1} hint2={task.hint2} hint3={task.hint3} />
-      <TaskAttemptForm taskId={task.id} />
+
+      <TaskAttemptForm taskId={params.id} objective={task.objective} rubric={task.rubric} />
     </div>
   );
 }
