@@ -2,18 +2,21 @@ import { getApps, initializeApp, cert, type ServiceAccount } from "firebase-admi
 import { getFirestore, type Firestore } from "firebase-admin/firestore";
 import type { UserRecord, TaskRecord, AttemptRecord, UserStatsRecord } from "./types";
 import { Timestamp } from "firebase-admin/firestore";
+import { isFirestoreConfigured, missingEnv } from "./config";
+
+const FIRESTORE_ENV_KEYS = ["GOOGLE_CLOUD_PROJECT_ID", "FIREBASE_CLIENT_EMAIL", "FIREBASE_PRIVATE_KEY"];
 
 function getFirestoreAdmin(): Firestore {
-  if (getApps().length === 0) {
-    const projectId = process.env.GOOGLE_CLOUD_PROJECT_ID;
-    const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
-    const privateKey = process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n");
+  if (!isFirestoreConfigured()) {
+    const missing = missingEnv(FIRESTORE_ENV_KEYS);
+    throw new Error(`Firestore is not configured. Missing env vars: ${missing.join(", ")}`);
+  }
 
-    if (!projectId || !clientEmail || !privateKey) {
-      throw new Error(
-        "Missing Firebase env: GOOGLE_CLOUD_PROJECT_ID, FIREBASE_CLIENT_EMAIL, FIREBASE_PRIVATE_KEY"
-      );
-    }
+  if (getApps().length === 0) {
+    const projectId = process.env.GOOGLE_CLOUD_PROJECT_ID!;
+    const clientEmail = process.env.FIREBASE_CLIENT_EMAIL!;
+    const rawKey = process.env.FIREBASE_PRIVATE_KEY ?? "";
+    const privateKey = rawKey.replace(/\\n/g, "\n");
 
     const credentials: ServiceAccount = {
       projectId,
