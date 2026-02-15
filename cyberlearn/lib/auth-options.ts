@@ -13,12 +13,14 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
     async signIn({ user, account, profile }) {
       if (account?.provider !== "okta" || !user?.email) return true;
-      const sub = profile?.sub ?? (user as { sub?: string }).sub ?? user.email;
+      const sub = (profile as { sub?: string })?.sub ?? (user as { sub?: string }).sub ?? user.email;
+      const email = (profile as { email?: string })?.email ?? user.email;
+      const name = (profile as { name?: string })?.name ?? (profile as { email?: string })?.email ?? user.name ?? user.email;
       try {
         await upsertUser({
           oktaSub: sub,
-          email: user.email,
-          name: user.name ?? "",
+          email,
+          name: name || email,
         });
       } catch {
         // allow login even if Firestore upsert fails (e.g. env not set locally)

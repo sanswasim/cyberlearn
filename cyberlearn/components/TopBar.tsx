@@ -1,7 +1,26 @@
-export function TopBar({ title }: { title?: string }) {
+"use client";
+
+import { signOut, useSession } from "next-auth/react";
+
+export function TopBar() {
+  const { data: session } = useSession();
+
   return (
-    <header className="flex h-14 items-center border-b border-[#1E2A44] bg-[#121A2B] px-6">
-      {title && <h1 className="text-lg font-semibold text-[#E6EDF3]">{title}</h1>}
-    </header>
+    <div className="flex justify-between items-center border-b border-[#1E2A44] p-4">
+      <div className="font-semibold">CyberLearn</div>
+
+      <div className="flex items-center gap-4">
+        <span className="text-sm opacity-70">
+          {session?.user?.email}
+        </span>
+
+        <button
+          onClick={() => signOut()}
+          className="px-3 py-1 rounded bg-gradient-to-r from-[#0B3C5D] to-[#00C2FF]"
+        >
+          Sign out
+        </button>
+      </div>
+    </div>
   );
 }

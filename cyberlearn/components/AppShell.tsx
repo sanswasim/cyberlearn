@@ -13,7 +13,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     return <>{children}</>;
   }
   return (
-    <div className="flex min-h-screen">
+    <div className="flex min-h-screen bg-[#0A0F1C] text-[#E6EDF3]">
       <Sidebar userEmail={session?.user?.email ?? null} />
       <div className="flex flex-1 flex-col">
         <TopBar />
